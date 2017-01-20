@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Ukenol Patients - Planlodge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/png" href="//pngimg.com/upload/pills_PNG16521.png">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/ngToast.min.css" />
+    <link rel="stylesheet" href="assets/css/ngToast-animations.min.css" />
+    <link rel="stylesheet" href="//weareoutman.github.io/clockpicker/dist/jquery-clockpicker.min.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+
+<body data-ng-app="PatientApp" ng-controller="PatientController" ng-cloak=''>
+<header>
+
+
+</header>
+
+<main>
+
+    <div class="banner"></div>
+
+    <div class="container-fluid">
+
+        <div class="page-header row col-md-12">
+            <h1>Ukenol Patients <small>Today's Schedule</small></h1>
+
+            <blockquote>
+                <p>Schedule for today's doctor visits.</p>
+            </blockquote>
+        </div>
+
+        <div class="row col-md-12">
+
+            <div class="form-group col-md-3 no-padding patientMessage">
+                <p>{{patientsMessage}}</p>
+            </div>
+
+            <div class="form-group col-md-5 no-padding">
+                <input type="text" class="form-control" id="" placeholder="Search Patients.." ng-model="searchFilter">
+            </div>
+
+            <div class="form-group col-md-4 no-padding">
+                <a class="btn btn-success pull-right" data-toggle="modal" data-target="#new" data-backdrop="static">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> New Appointment
+                </a>
+            </div>
+
+                <table class="table table-hover">
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Check-In</th>
+                    <th>Note</th>
+                    <th>Actions</th>
+                    <tr data-ng-repeat="person in patientsFilter = (patients | filter: searchFilter | orderBy:'id')">
+                        <td>{{person.id}}</td>
+                        <td>{{person.first}} {{person.last}}</td>
+                        <td>
+                            <span ng-hide="person.editing == 'true'" ng-dblclick="editPatient(person)">{{person.time}}</span><span>
+
+                            <div ng-show="person.editing == 'true'" class='form-group'>
+                                <input ng-model="person.time" ng-blur="doneEditing(person)" autofocus="" />
+                            </div>
+
+                        </td>
+                        <td style="width:40%;">{{person.note}}</td>
+                        <td>
+                            <a class="btn btn-warning" data-toggle="modal" data-target="#searchP" ng-click="viewPatient($index, person)">
+                                <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                            </a>
+                            <a class="btn btn-danger" ng-click="removePatient($index, person)">
+                                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr ng-if="patientsFilter.length < 1">
+                        <td>No Patients found.</td>
+                    </tr>
+                </table>
+
+        </div>
+
+
+
+    </div>
+
+
+    <!-- normal Modal -->
+    <div class="modal fade" id="new" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">Schedule New Appointment</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Please fill out information below for a new appointment.</p>
+
+                    <form name="saveForm">
+                        <div class="form-group col-md-6 no-padding">
+                            <input required type="text" class="form-control" id="first" placeholder="First Name" ng-model="saveP.first">
+                        </div>
+                        <div class="form-group col-md-6 no-padding">
+                            <input required type="text" class="form-control" id="last" placeholder="Last Name" ng-model="saveP.last">
+                        </div>
+                        <div class="form-group">
+                            <textarea required class="form-control" rows="3" placeholder="Note" ng-model="saveP.note"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <input required type="email" class="form-control" id="email" placeholder="E-Mail Address" ng-model="saveP.email">
+                        </div>
+                        <div class="form-group">
+                            <div class='input-group date' id='timePicker' data-default="now">
+                                <input required type='text' class="form-control" ng-model="saveP.time" placeholder="Scheduled Time" />
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" ng-disabled="saveForm.$invalid" ng-click="savePatient(saveP)">Save Appointment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- normal Modal -->
+    <div class="modal fade" id="searchP" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">{{viewer.firstName}} {{viewer.lastName}}</h4>
+                </div>
+                <div class="modal-body">
+                    <h2>ID: {{viewer.id}}</h2>
+                    <h3>{{viewer.address}}, {{viewer.city}} {{viewer.zip}}</h3>
+                    <h4>Scheduled Time: {{viewer.time}}</h4>
+                    <p>{{viewer.note}}</p>
+                    <p>{{viewer.email}}</p>
+                    <em>{{viewer.phone}}</em>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer>
+    <toast></toast>
+
+</footer>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<script src='//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.js'></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.1/angular-sanitize.min.js"></script>
+<script src="assets/js/ngToast.min.js"></script>
+<script src="//weareoutman.github.io/clockpicker/dist/jquery-clockpicker.min.js"></script>
+<script>
+
+    var input = $('#timePicker');
+    var input2 = $('.timePickerEdit');
+
+    input.clockpicker({
+        autoclose: true
+    });
+
+    input2.clockpicker({
+        autoclose: true
+    });
+
+    $('[data-toggle="tooltip"]').tooltip();
+
+    var app = angular.module("PatientApp", ['ngAnimate','ngToast']); // module init
+    app.controller("PatientController", function($scope, $http, ngToast) { // controller init
+
+        $scope.patients = [];
+        $scope.patientsCount = 0;
+        $scope.patientsMessage = "";
+        $scope.viewer = {};
+
+        $http.get("assets/js/patient-data.json").then(function(response) {
+            $scope.patients = response.data;
+            $scope.patientsCount = $scope.patients.length;
+            console.log(response.data);
+
+
+            $scope.checkPatientCount();
+
+        }, function(response) {
+            alert('Could Not Fetch Data.');
+        });
+
+        $scope.removePatient = function (id, person) {
+
+            $scope.patients.splice(id, 1);
+
+            ngToast.create({
+                className: 'danger',
+                content: '<i class="fi-check"> Removed ' + person.first + ' ' + person.last + "."
+            });
+
+            --$scope.patientsCount;
+            $scope.checkPatientCount();
+
+        };
+
+        $scope.checkPatientCount = function () {
+
+            if ($scope.patientsCount == 0) {
+                $scope.patientsMessage = "No Patients scheduled today.";
+            } else if ($scope.patientsCount == 1) {
+                $scope.patientsMessage = $scope.patientsCount + " Patient scheduled today.";
+            } else if ($scope.patientsCount > 1) {
+                $scope.patientsMessage = $scope.patientsCount + " Patients scheduled today.";
+            }
+        };
+
+        $scope.savePatient = function (patient) {
+            console.log(patient);
+
+            var temp = {
+                "id": 139280,
+                "first": patient.first,
+                "last": patient.last,
+                "phone": "(01914) 549991",
+                "email": patient.email,
+                "address": "Ap #103-226 Enim Ave",
+                "city": "Poederlee",
+                "zip": "54-573",
+                "note": patient.note,
+                "time": patient.time + " PM",
+                "editing": "false"
+            }
+
+            $scope.patients.push(temp);
+
+            $('#new').modal('toggle');
+
+            ngToast.create({
+                className: 'success',
+                content: '<i class="fi-check">' + patient.first + ' has been added to the schedule.'
+            });
+
+            $scope.saveP = {};
+        };
+
+        $scope.viewPatient = function (id, patient) {
+
+            $scope.viewer.id = patient.id;
+
+            $scope.viewer.firstName = patient.first;
+            $scope.viewer.lastName = patient.last;
+
+            $scope.viewer.email = patient.email;
+            $scope.viewer.time = patient.time;
+
+            $scope.viewer.note = patient.note;
+            $scope.viewer.address = patient.address;
+
+            $scope.viewer.zip = patient.zip;
+            $scope.viewer.city = patient.city;
+
+            $scope.viewer.phone = patient.phone;
+
+            console.log("g");
+
+        };
+
+        $scope.editPatient = function (patient) {
+            patient.editing = "true";
+        };
+
+        $scope.doneEditing = function (patient, value) {
+
+            if (value != "") {
+                patient.editing = "false";
+
+                ngToast.create({
+                    className: 'success',
+                    content: '<i class="fi-check">' + patient.first + '\'s appointment has been updated.'
+                });
+            }
+        };
+
+    });
+
+</script>
+</body>
+
+</html>
